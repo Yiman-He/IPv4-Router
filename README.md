@@ -3,15 +3,15 @@
 ## Overview
 Some basic functions of an IPv4 Router will be implemented in this project.
 
-[ ] Responding to/making ARP requests
+* [ ] Responding to/making ARP requests
 
-[ ] Maintaining a route lookup table
+* [ ] Maintaining a route lookup table
 
-[ ] Receiving packets and forwarding them directly to their destination using the route lookup table
+* [ ] Receiving packets and forwarding them directly to their destination using the route lookup table
 
-[ ] Learning routes dynamically
+* [ ] Learning routes dynamically
 
-[ ] Use mininet and see packets in a live network
+* [ ] Use mininet and see packets in a live network
 
 ## Part1 Address Resolution Protocol(ARP)
 
