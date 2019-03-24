@@ -33,7 +33,7 @@ The main task for this exercise is to modify the Router class to do the followin
     ```
     * See the Arp packet header [reference](https://jsommers.github.io/switchyard/reference.html?highlight=arp#switchyard.lib.packet.Arp) in the Switchyard documentation for more.
 3. For each ARP request, you should determine whether the *targetprotoaddr* field (IP address destination) in the ARP header is an IP address assigned to one of the interfaces on your router. (**Not sure if I can access assigned IP address through interface**)
-    * If the destination IP address is one that is assigned to an interface of your Router, create and send an appropriate ARP reply. The ARP reply should be sent out of the same on which the ARP request arrived. (If the destination IP address is not assigned to one of the router's interfaces, drop the packet.)
+    * If the destination IP address is one that is assigned to an interface of your Router, create and send an appropriate ARP reply. The ARP reply should be sent out of the same interface on which the ARP request arrived. (If the destination IP address is not assigned to one of the router's interfaces, drop the packet.)
 4. If you receive an ARP reply, determine whether the *targetprotoaddr* field (IP address destination) in the ARP header is an IP address assigned to one of the interfaces on your router.
     * If the destination IP address is one that is assigned to an interface of your Router, you should store a mapping of the ARP in your router. i.e, Add the *senderprotoaddr* to *senderhwaddr* mapping into your *arp_table*.
 5. If a packet that you receive in the router is not an ARP request, you should ignore it (drop it) for now. (**I would assume that ARP reply will not be dropped immediately**)
