@@ -67,7 +67,7 @@ class Router(object):
                 # This is when an ARP reply is received
                 else:
                     if arp.targetprotoaddr in myips:
-                        arp_table[senderprotoaddr] = senderhwaddr
+                        arp_table[arp.senderprotoaddr] = arp.senderhwaddr
 
 
 

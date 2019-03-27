@@ -50,6 +50,19 @@ These two functions above return a full Packet object including Ethernet and Arp
 
 ## Part2 IP Forwarding
 
+ The fundamental thing that routers do: 
+ 1. receive packets 
+ 1. match their destination addresses against a forwarding table
+ 1. forward them out the correct interface.
+
+ A **forwarding table** is needed to be implemented. Each entry contains:
+ 1. A network prefix (e.g., 149.43.0.0)
+ 1. A network "mask" (e.g., 255.255.0.0)
+ 1. The "next hop" IP address, if the destination network prefix is not for a directly attached network
+ 1. The network interface name through which packets destined to the given network should be forwarded. 
+
+
+
 ## Part 3: Route information learning
 
 ## Part 4: Mininet live testing
