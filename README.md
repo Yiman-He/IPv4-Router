@@ -32,7 +32,7 @@ The main task for this exercise is to modify the Router class to do the followin
     arp = packet.get_header(Arp)
     ```
     * See the Arp packet header [reference](https://jsommers.github.io/switchyard/reference.html?highlight=arp#switchyard.lib.packet.Arp) in the Switchyard documentation for more.
-3. For each ARP request, you should determine whether the *targetprotoaddr* field (IP address destination) in the ARP header is an IP address assigned to one of the interfaces on your router. (**Not sure if I can access assigned IP address through interface**)
+3. For each ARP request, you should determine whether the *targetprotoaddr* field (IP address destination) in the ARP header is an IP address assigned to one of the interfaces on your router. 
     * If the destination IP address is one that is assigned to an interface of your Router, create and send an appropriate ARP reply. The ARP reply should be sent out of the same interface on which the ARP request arrived. (If the destination IP address is not assigned to one of the router's interfaces, drop the packet.)
 4. If you receive an ARP reply, determine whether the *targetprotoaddr* field (IP address destination) in the ARP header is an IP address assigned to one of the interfaces on your router.
     * If the destination IP address is one that is assigned to an interface of your Router, you should store a mapping of the ARP in your router. i.e, Add the *senderprotoaddr* to *senderhwaddr* mapping into your *arp_table*.
@@ -56,11 +56,93 @@ These two functions above return a full Packet object including Ethernet and Arp
  1. forward them out the correct interface.
 
  A **forwarding table** is needed to be implemented. Each entry contains:
- 1. A network prefix (e.g., 149.43.0.0)
- 1. A network "mask" (e.g., 255.255.0.0)
+ 1. A network *prefix* (e.g., 149.43.0.0)
+ 1. A network *mask* (e.g., 255.255.0.0)
  1. The "next hop" IP address, if the destination network prefix is not for a directly attached network
  1. The network interface name through which packets destined to the given network should be forwarded. 
 
+The forwarding table is build from 2 sources.
+ 1. The list of router interfaces from:
+ ```python
+ net.interfaces()
+ ```
+ 2. Reading from file named **forwarding_table.txt**. The file can be assumed to exist in the same directory where your router is starting up.
+
+A typical forwarding table may look like this:
+```
+172.16.0.0 255.255.0.0 192.168.1.2 router-eth0
+192.168.200.0 255.255.255.0 192.168.200.1 router-eth1
+```
+
+However, from the first source, we construct entries in the forwarding table without the field of "next hop". In this case, the entry will be like this:
+```
+172.16.0.0 255.255.0.0 None router-eth0
+```
+The prefix(ip), the mask and the interface name are accessible through the interface.
+
+```python
+intf.ipaddr
+intf.netmask
+intf.name
+```
+After building the forwarding table, destination address will be matched against the forwarding table. In case of two items in the table matching, the **longest prefix match** should be used.
+
+To find out the length of a subnet prefix, use the following code pattern:
+```python
+from switchyard.lib.address import *
+netaddr = IPv4Network('172.16.0.0/255.255.255.0')
+netaddr.prefixlen # -> 24
+```
+(**I am not sure about how to find the matches now. Waiting for Piazza response.**)
+
+Once the forwarding table lookup is complete, next steps are:
+
+1. Accept Arp packets and IPv4 packets and drop everything else. IPv4 headers must be present.
+2. Decrement the *TTL* field in the IP header by 1 (This could be done before the lookup). For this project, *TTL* value is greater than 0 after decrementing.
+3. Create a new Ethernet header for the IP packet to be forwarded. There are 3 fields in the Ethernet header. *dst*, *ethertype* and *src*. *src* is the source mac address. 
+```python
+src = intf.ethaddr
+``` 
+4. *dst* is the ethernet MAC address of the **next hop** (or just the **destination host**). To get the *dst*,
+ * If the ARP address is already stored in the ARP table, use that to send the packet. Update the time of use of this ARP entry in the ARP table.
+ * Otherwise, send an Arp request to obtain the next hop MAC address.
+5. For handling ARP queries so the following:
+ * Send an ARP request for the IP address needing to be "resolved".
+ * When an ARP reply is received, 
+    1. store the information in your table, 
+    2. complete the Ethernet header for the IP packet to be forwarded, 
+    3. and send it along. 
+    4. Also create a cache of IP addresses and the Ethernet MAC addresses that they correspond to. (**Not sure why this is needed**)
+ * If no ARP reply is received within 1 second in response to an ARP request, send another ARP request. 
+ * Send up to (exactly) 3 ARP requests for a given IP address. If no ARP reply is received after 3 requests, give up and drop the packet (and do nothing else).
+
+**Recommended:** 
+* Create a queue that contains information about IP packets awaiting ARP resolution.
+* Each time through the main while loop, process the items in the queue to see whether an ARP request retransmission needs to be sent.
+* If you receive an ARP reply packet 
+    1. remove an item from the queue, 
+    2. update the ARP table, 
+    3. construct the Ethernet header, 
+    4. and send the packet.
+* A separate class may be needed to represent packets in the queue waiting for ARP responses. 
+* The class contains variables to:
+    1. The most recent time an ARP request was sent
+    2. the number of retries
+    3. Other information (packet information)
+
+Use the built-in time module:
+
+```python
+time.time() # -> current time in seconds as a float.
+```
+
+Two special cases to consider:
+1. If there is no match in the table, just drop the packet.
+2. If packet is for the router itself (i.e., destination address is an address of one of the router's interfaces), also drop/ignore the packet. i.e,
+
+```python
+packet.dstip == interface.ipaddr
+```
 
 
 ## Part 3: Route information learning
