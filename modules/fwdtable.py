@@ -16,6 +16,7 @@ class FwdTable:
 
     # This will return a list containing the next hop ip and 
     # the name of the interface
+    # destaddr is destination IP address
     def findMatch(self, destaddr):
         matchedEntry = None
         maxPrefixLen = 0 # The length of the longest prefix
