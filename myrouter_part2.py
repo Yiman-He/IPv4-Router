@@ -10,6 +10,7 @@ import time
 
 from switchyard.lib.packet.util import *
 from switchyard.lib.userlib import *
+from switchyard.lib.address import *
 
 class Router(object):
     def __init__(self, net):
