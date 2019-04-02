@@ -145,7 +145,7 @@ time.time() # -> current time in seconds as a float.
 ```
 
 Two special cases to consider:
-1. If there is no match in the table, just drop the packet.
+1. If there is no match in the forwarding table, just drop the packet.
 2. If packet is for the router itself (i.e., destination address is an address of one of the router's interfaces), also drop/ignore the packet. i.e,
 
 ```python
