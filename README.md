@@ -93,7 +93,15 @@ from switchyard.lib.address import *
 netaddr = IPv4Network('172.16.0.0/255.255.255.0')
 netaddr.prefixlen # -> 24
 ```
-(**I am not sure about how to find the matches now. Waiting for Piazza response.**)
+
+To check whether a given address matches a prefix, we do this:
+
+```python
+prefixnet = IPv4Network('172.16.0.0/16')
+# same as IPv4Network('172.16.0.0/255.255.0.0')
+matches = destaddr in prefixnet
+# matches -> True
+```
 
 Once the forwarding table lookup is complete, next steps are:
 
@@ -112,7 +120,7 @@ src = intf.ethaddr
     1. store the information in your table, 
     2. complete the Ethernet header for the IP packet to be forwarded, 
     3. and send it along. 
-    4. Also create a cache of IP addresses and the Ethernet MAC addresses that they correspond to. (**Not sure why this is needed**)
+    4. ~~Also create a cache of IP addresses and the Ethernet MAC addresses that they correspond to.~~ (**This is not needed**)
  * If no ARP reply is received within 1 second in response to an ARP request, send another ARP request. 
  * Send up to (exactly) 3 ARP requests for a given IP address. If no ARP reply is received after 3 requests, give up and drop the packet (and do nothing else).
 
