@@ -180,10 +180,10 @@ class Router(object):
         my_interfaces = self.net.interfaces()
         myips = [intf.ipaddr for intf in my_interfaces]
         # constructing forwarding table
-        fwd_table = FwdTable()
+        fwd_table = self.FwdTable()
         fwd_table.readFromFile("forwarding_table.txt")
         fwd_table.readFromRouter(my_interfaces)
-        pkt_queue = PktQueue()
+        pkt_queue = self.PktQueue()
         # Initialize an empty arp_table, IP -> MAC
         arp_table = {}
         while True:
