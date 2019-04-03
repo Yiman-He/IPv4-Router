@@ -219,12 +219,13 @@ class Router(object):
                     log_debug("break point 3")
                     # The info_list contains next_ip and interface name
                     fwd_info_list = fwd_table.findMatch(pkt_dst_ip)
+                    log_debug("break point 4")
                     # If there is no match in the forwarding table, drop and continue
                     if fwd_info_list is None:
                         continue
                     next_ip = fwd_info_list[0]
                     out_port = fwd_info_list[1]
-                    log_debug("break point 4")
+                    
                     # When then next_hop_ip is none, we just use the destination ip
                     if next_ip is None:
                         next_ip = pkt_dst_ip
