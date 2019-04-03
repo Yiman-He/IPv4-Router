@@ -68,7 +68,7 @@ class Router(object):
             # Now we found the entry, we should return the next hop ip and interface name
             if matchedEntry is None:
                 return None
-            return [entry.next_hop_ip, entry.intf_to_next]
+            return [matchedEntry.next_hop_ip, matchedEntry.intf_to_next]
 
         # Print the table for debugging purposes
         def printTable(self):
