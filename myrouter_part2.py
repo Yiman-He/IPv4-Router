@@ -224,7 +224,7 @@ class Router(object):
                         continue
                     next_ip = fwd_info_list[0]
                     out_port = fwd_info_list[1]
-
+                    log_debug("break point 4")
                     # When then next_hop_ip is none, we just use the destination ip
                     if next_ip is None:
                         next_ip = pkt_dst_ip
@@ -246,6 +246,7 @@ class Router(object):
                     else:
                         # There is no match in the arp table
                         # check if ip is already in queue
+                        log_debug("break point 5")
                         if not checkIPExist(next_ip):
                             # Might need sanity check
                             senderhwaddr = None
