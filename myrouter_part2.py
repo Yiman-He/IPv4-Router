@@ -41,7 +41,7 @@ class Router(object):
             for entry in self.entryList:
                 prefixnet = None
                 # Cannot construct prefixnet when the nexthop is None
-                if next_hop_ip is not None:
+                if entry.next_hop_ip is not None:
                     prefixnet = IPv4Network(str(entry.prefix) + '/' + str(entry.mask))
             #     log_debug("bp 1")
             #     log_debug("checking if " + str(destaddr) + " in " + str(prefixnet))
