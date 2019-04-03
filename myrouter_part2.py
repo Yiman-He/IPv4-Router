@@ -50,6 +50,7 @@ class Router(object):
                 matches = (int(IPv4Address(entry.mask)) & int(IPv4Address(destaddr))) == int(IPv4Address(entry.prefix))
                 log_debug(matches)
                 if matches:
+                    log_debug("matches!")
                     # # When the prefix length is larger than the previous match, 
                     # # update the matched entry
                     # if prefixnet.prefixlen > maxPrefixLen:
