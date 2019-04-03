@@ -267,7 +267,7 @@ class Router(object):
                         # There is no match in the arp table
                         # check if ip is already in queue
                         log_debug("break point 5")
-                        if not checkIPExist(next_ip):
+                        if not pkt_queue.checkIPExist(next_ip):
                             # Might need sanity check
                             senderhwaddr = None
                             senderprotoaddr = None
