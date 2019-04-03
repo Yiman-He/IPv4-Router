@@ -49,14 +49,14 @@ class Router(object):
             #     log_debug(int(IPv4Address(entry.mask)) & int(IPv4Address(destaddr)))
                 matches = (int(IPv4Address(entry.mask)) & int(IPv4Address(destaddr))) == int(IPv4Address(entry.prefix))
                 log_debug(matches)
-            #     if matches:
-            #         # When the prefix length is larger than the previous match, 
-            #         # update the matched entry
-            #         if prefixnet.prefixlen > maxPrefixLen:
-            #             log_debug("bp 2")
-            #             matchedEntry = entry
-            #             maxPrefixLen = prefixnet.prefixlen
-            # # Now we found the entry, we should return the next hop ip and interface name
+                if matches:
+                    # # When the prefix length is larger than the previous match, 
+                    # # update the matched entry
+                    # if prefixnet.prefixlen > maxPrefixLen:
+                    #     log_debug("bp 2")
+                    #     matchedEntry = entry
+                    #     maxPrefixLen = prefixnet.prefixlen
+            # Now we found the entry, we should return the next hop ip and interface name
             if matchedEntry is None:
                 return None
             return [entry.next_hop_ip, entry.intf_to_next]
