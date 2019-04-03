@@ -48,6 +48,7 @@ class Router(object):
                 log_debug(int(IPv4Address(entry.prefix)))
                 log_debug(int(IPv4Address(entry.mask)) & int(IPv4Address(destaddr)))
                 matches = (int(IPv4Address(entry.mask)) & int(IPv4Address(destaddr))) == int(IPv4Address(entry.prefix))
+                log_debug(matches)
                 if matches:
                     # When the prefix length is larger than the previous match, 
                     # update the matched entry
