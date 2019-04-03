@@ -19,7 +19,7 @@ class Router(object):
 
     class FwdTable:
         def __init__(self):
-        self.entryList = []
+            self.entryList = []
 
         class Entry:
             def __init__(self, prefix, mask, next_hop_ip, intf_to_next):
