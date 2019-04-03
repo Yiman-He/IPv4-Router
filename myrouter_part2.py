@@ -39,10 +39,10 @@ class Router(object):
             matchedEntry = None
             maxPrefixLen = 0 # The length of the longest prefix
             for entry in self.entryList:
-                prefixnet = None
-                # Cannot construct prefixnet when the nexthop is None
-                if entry.next_hop_ip is not None:
-                    prefixnet = IPv4Network(str(entry.prefix) + '/' + str(entry.mask))
+                # We need to "preprocess" the prefix (if the nexthop is None)
+                # Otherwise there will be an error
+                prefix = IPv4Address(int(IPv4Address(entry.prefix)) & int(IPv4Address(entry.mask)))
+                prefixnet = IPv4Network(str(prefix) + '/' + str(entry.mask))
             #     log_debug("bp 1")
             #     log_debug("checking if " + str(destaddr) + " in " + str(prefixnet))
             #     #if destaddr in prefixnet:
@@ -50,15 +50,15 @@ class Router(object):
             #     log_debug(int(IPv4Address(destaddr)))
             #     log_debug(int(IPv4Address(entry.prefix)))
             #     log_debug(int(IPv4Address(entry.mask)) & int(IPv4Address(destaddr)))
-                matches = (int(IPv4Address(entry.mask)) & int(IPv4Address(destaddr))) == int(IPv4Address(entry.prefix))
+                matches = (int(IPv4Address(entry.mask)) & int(IPv4Address(destaddr))) == int(IPv4Address(prefix))
                 log_debug(matches)
                 if matches:
                     log_debug("matches!")
                     # When prefixnet is None, just make it the matched entry
                     # cuz the router can reach the dst directly
-                    if prefixnet is None:
-                        matchedEntry = entry
-                        break
+                    # if prefixnet is None:
+                    #     matchedEntry = entry
+                    #     break
                     # When the prefix length is larger than the previous match, 
                     # update the matched entry
                     if prefixnet.prefixlen > maxPrefixLen:
