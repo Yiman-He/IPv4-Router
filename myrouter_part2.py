@@ -183,6 +183,7 @@ class Router(object):
         fwd_table = self.FwdTable()
         fwd_table.readFromFile("forwarding_table.txt")
         fwd_table.readFromRouter(my_interfaces)
+        fwd_table.printTable()
         pkt_queue = self.PktQueue()
         # Initialize an empty arp_table, IP -> MAC
         arp_table = {}
