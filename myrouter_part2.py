@@ -43,7 +43,7 @@ class Router(object):
                 log_debug("bp 1")
                 log_debug("checking if " + str(destaddr) + " in " + str(prefixnet))
                 #if destaddr in prefixnet:
-                matches = (int(entry.mask) & int(destaddr)) == int(entry.prefix)
+                matches = (int(IPv4Address(entry.mask)) & int(IPv4Address(destaddr))) == int(IPv4Address(entry.prefix))
                 if matches:
                     # When the prefix length is larger than the previous match, 
                     # update the matched entry
