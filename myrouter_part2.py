@@ -55,9 +55,9 @@ class Router(object):
         def printTable(self):
             for entry in self.entryList:
                 if entry.next_hop_ip is None:
-                    log_debug(entry.prefix + " " + entry.mask + " " + "None" + " " + entry.intf_to_next)
+                    log_debug(str(entry.prefix) + " " + str(entry.mask) + " " + "None" + " " + str(entry.intf_to_next))
                     continue
-                log_debug(entry.prefix + " " + entry.mask + " " + entry.next_hop_ip + " " + entry.intf_to_next)
+                log_debug(str(entry.prefix) + " " + str(entry.mask) + " " + str(entry.next_hop_ip) + " " + str(entry.intf_to_next))
 
         # Construct the table using a file
         def readFromFile(self, fileName):
@@ -149,7 +149,7 @@ class Router(object):
         # Print the table for debugging purposes
         def printTable(self):
             for entry in self.entryList:
-                log_debug(entry.last_req_time + " " + entry.num_retry + " " + entry.pkt[IPv4].dst + " " + entry.next_ip + " " + entry.intf_to_next)
+                log_debug(str(entry.last_req_time) + " " + str(entry.num_retry) + " " + str(entry.pkt[IPv4].dst) + " " + str(entry.next_ip) + " " + str(entry.intf_to_next))
 
         # Check if the next_ip already exist in the queue
         def checkIPExist(self, next_ip):
