@@ -41,6 +41,7 @@ class Router(object):
             for entry in self.entryList:
                 prefixnet = IPv4Network(str(entry.prefix) + '/' + str(entry.mask))
                 log_debug("bp 1")
+                log_debug("checking if " + str(destaddr) + " in " + str(prefixnet))
                 if destaddr in prefixnet:
                     # When the prefix length is larger than the previous match, 
                     # update the matched entry
