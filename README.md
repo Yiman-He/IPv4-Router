@@ -155,4 +155,25 @@ packet.dstip == interface.ipaddr
 
 ## Part 3: Route information learning
 
+Route information within a network are dynamically learnt using intra-domain routing protocols like OSPF and RIP. These are complex protocol and hence we will implement our own learning mechanism.
+
+The dynamic routing packet consists of:
+1. router prefix, 
+2. mask, 
+3. next hop address. 
+
+The interface for the route is the interface the packet came in on.
+
+The routes learnt from this are __higher priority routes__. Create a separate forwarding table called *dynamic_routing_table*. 
+
+The size of this table should be set to 5.
+
+1. In addition to Arp and IPv4 packets you should now also accept DynamicRoutingMessage packets.
+
+2. Everytime you receive this packet you can update your routing table to store these routes. If there is no space in the table, remove the oldest route. (**First In First Out - FIFO**) The route lookup logic for this remains same as forwarding table which uses the Longest Prefix Match (LPM) described above.
+
+3. When you get an IPv4 packet which should be routed, now first look for a match in dynamic_routing_table. If present (breaking ties by lpm), use that else go to 4.
+
+4. Look in the forwarding_table (previously created in part2, again break ties by lpm). If present, use that.
+
 ## Part 4: Mininet live testing
