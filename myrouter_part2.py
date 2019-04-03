@@ -81,10 +81,6 @@ class Router(object):
 
         def __init__(self):
             self.entryList = []
-            # This will map next_ip to a state.
-            # 192.168.0.1 -> 0 means that we have not sent a request for this ip
-            # 192.168.0.1 -> 1 means that we have already sent a request for this ip
-            self.next_ip_set = {}
 
         class Entry:
             def __init__(self, last_req_time, num_retry, pkt, next_ip, intf_to_next):
@@ -94,18 +90,16 @@ class Router(object):
                 self.next_ip = next_ip # This could etiher be the next hop ip or just dst ip
                 self.intf_to_next = intf_to_next
 
-        # Returns True or False
-        # True means that next ip is already in queue, 
-        # otherwise False
+        
         def addEntry(self, pkt, next_ip, intf_to_next):
             last_req_time = time.time()
             num_retry = 1
             entry = self.Entry(last_req_time, num_retry, pkt, next_ip, intf_to_next)
             self.entryList.append(entry)
-            if next_ip in next_ip_set:
-                return True
-            self.next_ip_set.add(next_ip)
-            return False
+
+        def addEntry_custom(last_req_time, num_retry, pkt, next_ip, intf_to_next):
+            entry = self.Entry(last_req_time, num_retry, pkt, next_ip, intf_to_next)
+            self.entryList.append(entry)
 
         # find the matched entry using arp_reply
         # return all the required info to send pkt
@@ -143,6 +137,8 @@ class Router(object):
                             targetprotoaddr = entry.next_ip
                             arp_request = create_ip_arp_request(senderhwaddr, senderprotoaddr, targetprotoaddr)
                             net.send_packet(intf.name, arp_request)
+                            # To make sure every entry with the same ip has the same last_req_time
+                            self.change_time_info(entry.next_ip, time.time())
                             # Add next_ip to the processed set
                             procd_next_ips.add(entry.next_ip)
                             log_debug("arp_request sent successfully.")
@@ -155,6 +151,27 @@ class Router(object):
             for entry in self.entryList:
                 log_debug(entry.last_req_time + " " + entry.num_retry + " " + entry.pkt.dstip + " " + entry.next_ip + " " + entry.intf_to_next)
 
+        # Check if the next_ip already exist in the queue
+        def checkIPExist(self, next_ip):
+            ip_list = [entry.next_ip for entry in self.entryList]
+            if next_ip in ip_list:
+                return True
+            return False
+
+        # Get the last req time and num_retry for an ip address
+        # Assumed that in the queue, entries with the same ip addr already share the time and retry
+        def get_time_retry_info(self, next_ip):
+            for entry in self.entryList:
+                if entry.next_ip == next_ip:
+                    return entry.last_req_time, entry.num_retry
+            return None, None
+
+        def change_time_info(self, next_ip, newtime):
+            for entry in self.entryList:
+                if entry.next_ip == next_ip:
+                    entry.last_req_time = newtime
+
+
     def router_main(self):    
         '''
         Main method for router; we stay in a loop in this method, receiving
@@ -162,6 +179,13 @@ class Router(object):
         '''
         my_interfaces = self.net.interfaces()
         myips = [intf.ipaddr for intf in my_interfaces]
+        # constructing forwarding table
+        fwd_table = FwdTable()
+        fwd_table.readFromFile("forwarding_table.txt")
+        fwd_table.readFromRouter(my_interfaces)
+        pkt_queue = PktQueue()
+        # Initialize an empty arp_table, IP -> MAC
+        arp_table = {}
         while True:
             gotpkt = True
             try:
@@ -172,16 +196,71 @@ class Router(object):
             except Shutdown:
                 log_debug("Got shutdown signal")
                 break
-
+            # Go through the queue before checking incoming packets
+            pkt_queue.navigate(self.net)
             if gotpkt:
                 log_debug("Got a packet: {}".format(str(pkt)))
-                # Initialize an empty arp_table, IP -> MAC
-                arp_table = {}
                 # Determine whether it is an ARP request
                 arp = pkt.get_header(Arp)
                 # The packet is not ARP request nor reply, ignore it
                 if arp is None:
-                    continue;
+                    ipv4 = pkt.get_header(IPv4)
+                    if ipv4 is None:
+                        continue
+                    # When IPv4 header is not none, this is an IPv4 packet
+                    pkt_dst_ip = pkt.dstip
+                    # Check if the packet is intended for the router itself
+                    # If it is, just ignore and continue
+                    if pkt_dst_ip in myips:
+                        continue
+                    # The info_list contains next_ip and interface name
+                    fwd_info_list = fwd_table.findMatch(pkt_dst_ip)
+                    # If there is no match in the forwarding table, drop and continue
+                    if fwd_info_list is None:
+                        continue
+                    next_ip = fwd_info_list[0]
+                    out_port = fwd_info_list[1]
+
+                    # When then next_hop_ip is none, we just use the destination ip
+                    if next_ip is None:
+                        next_ip = pkt_dst_ip
+
+                    next_mac = arp_table.get(next_ip)
+                    if next_mac is not None:
+                        # decrement the ttl
+                        pkt[IPv4].ttl -= 1
+                        pkt[Ethernet].dst = next_mac
+                        # Find the source MAC address
+                        # TODO Might need sanity check
+                        for intf in my_interfaces:
+                            if intf.name == out_port:
+                                pkt[Ethernet].src = intf.ethaddr
+                                break
+                        # Everything goes well, just send packet
+                        self.net.send_packet(out_port, pkt)
+                        continue
+                    else:
+                        # There is no match in the arp table
+                        # check if ip is already in queue
+                        if not checkIPExist(next_ip):
+                            # Might need sanity check
+                            senderhwaddr = None
+                            senderprotoaddr = None
+                            for intf in my_interfaces:
+                                if intf.name == out_port:
+                                    senderhwaddr = intf.ethaddr
+                                    senderprotoaddr = intf.ipaddr
+                                    break
+                            targetprotoaddr = next_ip
+                            arp_request = create_ip_arp_request(senderhwaddr, senderprotoaddr, targetprotoaddr)
+                            net.send_packet(out_port, arp_request)
+                            pkt_queue.addEntry(pkt, next_ip, out_port)
+                        else:
+                            # When the ip is already in queue, get the time and the num_retry
+                            # then add the pkt to the queue
+                            last_req_time, num_entry = pkt_queue.get_time_retry_info(next_ip)
+                            pkt_queue.addEntry_custom(last_req_time, num_retry, pkt, next_ip, intf_to_next)
+
                 # Determine it is ARP request or ARP reply
                 # For an ARP request, the targethwaddr field is not filled
                 # May need to use "ff:ff:ff:ff:ff:ff" instead
@@ -205,7 +284,30 @@ class Router(object):
                 # This is when an ARP reply is received
                 else:
                     if arp.targetprotoaddr in myips:
+                        # Update arp table
                         arp_table[arp.senderprotoaddr] = arp.senderhwaddr
+                        # Send all the packets with the given IP address
+                        while pkt_queue.checkIPExist(arp.senderprotoaddr):
+                            # One packet at a time
+                            pkt_info_list = pkt_queue.findMatch(arp)
+                            # entry.pkt, entry.next_ip, entry.intf_to_next
+                            pkt = pkt_info_list[0]
+                            next_ip = pkt_info_list[1]
+                            out_port = pkt_info_list[2]
+                            # next_mac won't be None, not sure if sanity check is needed
+                            next_mac = arp.senderhwaddr
+                            # decrement the ttl
+                            pkt[IPv4].ttl -= 1
+                            pkt[Ethernet].dst = next_mac
+                            # Find the source MAC address
+                            # TODO Might need sanity check
+                            for intf in my_interfaces:
+                                if intf.name == out_port:
+                                    pkt[Ethernet].src = intf.ethaddr
+                                    break
+                            # Everything goes well, just send packet
+                            self.net.send_packet(out_port, pkt)
+
 
 
 
