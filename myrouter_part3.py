@@ -101,7 +101,7 @@ class Router(object):
     class FwdTable_dynamic(FwdTable):
 
         def __init__(self, capacity):
-            super(Router.FwdTable_dynamic, self).__init__(self)
+            super(Router.FwdTable_dynamic, self).__init__()
             self.capacity = capacity
             #FwdTable.__init__(self)
 
