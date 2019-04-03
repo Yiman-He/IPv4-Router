@@ -278,7 +278,7 @@ class Router(object):
                                     break
                             targetprotoaddr = next_ip
                             arp_request = create_ip_arp_request(senderhwaddr, senderprotoaddr, targetprotoaddr)
-                            net.send_packet(out_port, arp_request)
+                            self.net.send_packet(out_port, arp_request)
                             pkt_queue.addEntry(pkt, next_ip, out_port)
                         else:
                             # When the ip is already in queue, get the time and the num_retry
