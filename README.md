@@ -174,6 +174,6 @@ The size of this table should be set to 5.
 
 3. When you get an IPv4 packet which should be routed, now first look for a match in dynamic_routing_table. If present (breaking ties by lpm), use that else go to 4.
 
-4. Look in the forwarding_table (previously created in part2, again break ties by lpm). If present, use that.
+4. Look in the forwarding_table (previously created in part2, again break ties by lpm). If present, use that. 
 
 ## Part 4: Mininet live testing
