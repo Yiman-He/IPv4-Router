@@ -39,7 +39,7 @@ class Router(object):
             matchedEntry = None
             maxPrefixLen = 0 # The length of the longest prefix
             for entry in self.entryList:
-            #     prefixnet = IPv4Network(str(entry.prefix) + '/' + str(entry.mask))
+                prefixnet = IPv4Network(str(entry.prefix) + '/' + str(entry.mask))
             #     log_debug("bp 1")
             #     log_debug("checking if " + str(destaddr) + " in " + str(prefixnet))
             #     #if destaddr in prefixnet:
@@ -53,8 +53,8 @@ class Router(object):
                     log_debug("matches!")
                     # # When the prefix length is larger than the previous match, 
                     # # update the matched entry
-                    # if prefixnet.prefixlen > maxPrefixLen:
-                    #     log_debug("bp 2")
+                    if prefixnet.prefixlen > maxPrefixLen:
+                        log_debug("bp 2")
                     #     matchedEntry = entry
                     #     maxPrefixLen = prefixnet.prefixlen
             # Now we found the entry, we should return the next hop ip and interface name
