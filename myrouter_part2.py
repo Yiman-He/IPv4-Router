@@ -204,16 +204,19 @@ class Router(object):
                 # Determine whether it is an ARP request
                 arp = pkt.get_header(Arp)
                 # The packet is not ARP request nor reply, ignore it
+                log_debug("break point 1")
                 if arp is None:
                     ipv4 = pkt.get_header(IPv4)
                     if ipv4 is None:
                         continue
+                    log_debug("break point 2")
                     # When IPv4 header is not none, this is an IPv4 packet
                     pkt_dst_ip = pkt[IPv4].dst
                     # Check if the packet is intended for the router itself
                     # If it is, just ignore and continue
                     if pkt_dst_ip in myips:
                         continue
+                    log_debug("break point 3")
                     # The info_list contains next_ip and interface name
                     fwd_info_list = fwd_table.findMatch(pkt_dst_ip)
                     # If there is no match in the forwarding table, drop and continue
