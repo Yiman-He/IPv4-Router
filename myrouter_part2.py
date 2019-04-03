@@ -285,7 +285,7 @@ class Router(object):
                             # then add the pkt to the queue
                             last_req_time, num_entry = pkt_queue.get_time_retry_info(next_ip)
                             pkt_queue.addEntry_custom(last_req_time, num_retry, pkt, next_ip, intf_to_next)
-                        continue
+                        
 
                 # Determine it is ARP request or ARP reply
                 # For an ARP request, the targethwaddr field is not filled
