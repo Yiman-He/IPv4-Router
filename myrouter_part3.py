@@ -97,11 +97,14 @@ class Router(object):
             for intf in interfaces:
                 self.addEntry(intf.ipaddr, intf.netmask, None, intf.name)
 
+
     class FwdTable_dynamic(FwdTable):
 
         def __init__(self, capacity):
+            super(Router.FwdTable_dynamic, self).__init__(self)
             self.capacity = capacity
-            FwdTable.__init__(self)
+            #FwdTable.__init__(self)
+
 
         def addEntry(self, prefix, mask, next_hop_ip, intf_to_next):
             entry = self.Entry(prefix, mask, next_hop_ip, intf_to_next)
