@@ -39,7 +39,7 @@ class Router(object):
             matchedEntry = None
             maxPrefixLen = 0 # The length of the longest prefix
             for entry in self.entryList:
-                prefixnet = IPv4Network(entry.prefix + '/' + entry.mask)
+                prefixnet = IPv4Network(str(entry.prefix) + '/' + str(entry.mask))
                 if destaddr in prefixnet:
                     # When the prefix length is larger than the previous match, 
                     # update the matched entry
