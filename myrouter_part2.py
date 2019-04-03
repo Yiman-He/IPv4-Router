@@ -149,7 +149,7 @@ class Router(object):
         # Print the table for debugging purposes
         def printTable(self):
             for entry in self.entryList:
-                log_debug(entry.last_req_time + " " + entry.num_retry + " " + entry.pkt[IP].dst + " " + entry.next_ip + " " + entry.intf_to_next)
+                log_debug(entry.last_req_time + " " + entry.num_retry + " " + entry.pkt[IPv4].dst + " " + entry.next_ip + " " + entry.intf_to_next)
 
         # Check if the next_ip already exist in the queue
         def checkIPExist(self, next_ip):
@@ -208,7 +208,7 @@ class Router(object):
                     if ipv4 is None:
                         continue
                     # When IPv4 header is not none, this is an IPv4 packet
-                    pkt_dst_ip = pkt[IP].dst
+                    pkt_dst_ip = pkt[IPv4].dst
                     # Check if the packet is intended for the router itself
                     # If it is, just ignore and continue
                     if pkt_dst_ip in myips:
