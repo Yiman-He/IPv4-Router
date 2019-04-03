@@ -53,8 +53,8 @@ class Router(object):
                     log_debug("matches!")
                     # # When the prefix length is larger than the previous match, 
                     # # update the matched entry
-                    if prefixnet.prefixlen > maxPrefixLen:
-                        log_debug("bp 2")
+                    # if prefixnet.prefixlen > maxPrefixLen:
+                    #     log_debug("bp 2")
                     #     matchedEntry = entry
                     #     maxPrefixLen = prefixnet.prefixlen
             # Now we found the entry, we should return the next hop ip and interface name
