@@ -11,6 +11,7 @@ import time
 from switchyard.lib.packet.util import *
 from switchyard.lib.userlib import *
 from switchyard.lib.address import *
+from dynamicroutingmessage import DynamicRoutingMessage
 
 class Router(object):
     def __init__(self, net):
@@ -95,6 +96,21 @@ class Router(object):
             # interfaces should be self.net.interfaces()
             for intf in interfaces:
                 self.addEntry(intf.ipaddr, intf.netmask, None, intf.name)
+
+    class FwdTable_dynamic(FwdTable):
+
+        def __init__(self, capacity):
+            super(Router.FwdTable_dynamic, self).__init__()
+            self.capacity = capacity
+            #FwdTable.__init__(self)
+
+
+        def addEntry(self, prefix, mask, next_hop_ip, intf_to_next):
+            entry = self.Entry(prefix, mask, next_hop_ip, intf_to_next)
+            self.entryList.append(entry)
+            if len(self.entryList) > self.capacity:
+                # remove the first element
+                self.entryList.pop(0)
 
     class PktQueue:
 
@@ -207,6 +223,7 @@ class Router(object):
         fwd_table.readFromFile("forwarding_table.txt")
         fwd_table.readFromRouter(my_interfaces)
         fwd_table.printTable()
+        fwd_table_dynamic = self.FwdTable_dynamic(5)
         pkt_queue = self.PktQueue()
         # Initialize an empty arp_table, IP -> MAC
         arp_table = {}
@@ -224,6 +241,15 @@ class Router(object):
             pkt_queue.navigate(self.net)
             if gotpkt:
                 log_debug("Got a packet: {}".format(str(pkt)))
+                # Determine whether the pkt is a dynamic routing message
+                if pkt.get_header(DynamicRoutingMessage) is not None:
+                    msg = pkt.get_header(DynamicRoutingMessage)
+                    prefix = msg.advertised_prefix
+                    mask = msg.advertised_mask
+                    next_ip = msg.next_hop
+                    intf_to_next = input_port
+                    fwd_table_dynamic.addEntry(prefix, mask, next_ip, intf_to_next)
+                    continue
                 # Determine whether it is an ARP request
                 arp = pkt.get_header(Arp)
                 # The packet is not ARP request nor reply, ignore it
@@ -239,9 +265,11 @@ class Router(object):
                     # If it is, just ignore and continue
                     if pkt_dst_ip in myips:
                         continue
-                    #log_debug("break point 3")
-                    # The info_list contains next_ip and interface name
-                    fwd_info_list = fwd_table.findMatch(pkt_dst_ip)
+                    # First we check the dynamic table
+                    fwd_info_list = fwd_table_dynamic.findMatch(pkt_dst_ip)
+                    if fwd_info_list is None:
+                        # The info_list contains next_ip and interface name
+                        fwd_info_list = fwd_table.findMatch(pkt_dst_ip)
                     #log_debug("break point 4")
                     # If there is no match in the forwarding table, drop and continue
                     if fwd_info_list is None:
