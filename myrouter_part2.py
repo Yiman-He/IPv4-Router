@@ -284,7 +284,7 @@ class Router(object):
                             # When the ip is already in queue, get the time and the num_retry
                             # then add the pkt to the queue
                             last_req_time, num_retry = pkt_queue.get_time_retry_info(next_ip)
-                            pkt_queue.addEntry_custom(last_req_time, num_retry, pkt, next_ip, intf_to_next)
+                            pkt_queue.addEntry_custom(last_req_time, num_retry, pkt, next_ip, out_port)
                         continue
 
                 # Determine it is ARP request or ARP reply
