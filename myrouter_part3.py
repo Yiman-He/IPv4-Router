@@ -22,7 +22,6 @@ class Router(object):
         def __init__(self):
             self.entryList = []
 
-
         class Entry:
             def __init__(self, prefix, mask, next_hop_ip, intf_to_next):
                 self.prefix = prefix
@@ -90,14 +89,13 @@ class Router(object):
                 if len(wordList) != 4:
                     log_debug("problem in input file")
                     return
-                self.addEntry(wordList[0], wordList[1], wordList[2], wordList[3])
+                self.addEntry(IPv4Address(wordList[0]), IPv4Address(wordList[1]), IPv4Address(wordList[2]), wordList[3])
 
 
         def readFromRouter(self, interfaces):
             # interfaces should be self.net.interfaces()
             for intf in interfaces:
                 self.addEntry(intf.ipaddr, intf.netmask, None, intf.name)
-
 
     class FwdTable_dynamic(FwdTable):
 
@@ -113,7 +111,6 @@ class Router(object):
             if len(self.entryList) > self.capacity:
                 # remove the first element
                 self.entryList.pop(0)
-
 
     class PktQueue:
 
@@ -132,11 +129,11 @@ class Router(object):
         def addEntry(self, pkt, next_ip, intf_to_next):
             last_req_time = time.time()
             num_retry = 1
-            entry = self.Entry(last_req_time, num_retry, pkt, next_ip, intf_to_next)
+            entry = self.Entry(last_req_time, num_retry, pkt, IPv4Address(next_ip), intf_to_next)
             self.entryList.append(entry)
 
         def addEntry_custom(self, last_req_time, num_retry, pkt, next_ip, intf_to_next):
-            entry = self.Entry(last_req_time, num_retry, pkt, next_ip, intf_to_next)
+            entry = self.Entry(last_req_time, num_retry, pkt, IPv4Address(next_ip), intf_to_next)
             self.entryList.append(entry)
 
         # find the matched entry using arp_reply
@@ -146,7 +143,10 @@ class Router(object):
             for i in range(len(self.entryList)):
                 # Destination IP of packet matches the sender IP from ARP reply
                 entry = self.entryList[i]
-                if entry.next_ip == arp_reply.senderprotoaddr:
+                log_debug(str(entry.next_ip))
+                log_debug(str(arp_reply.senderprotoaddr))
+                if str(entry.next_ip) == str(arp_reply.senderprotoaddr):
+                    log_debug("matched!")
                     entry = self.entryList.pop(i)
                     return [entry.pkt, entry.next_ip, entry.intf_to_next]
             return None
@@ -159,7 +159,8 @@ class Router(object):
             self.entryList[:] = [entry for entry in self.entryList if entry.num_retry < 3]
             # Processed next ips. This is a set that stores next ips that we already sent arp-requests to.
             # We do not sent arp requests 2 times for the same next-ip. That's why we need the set.
-            procd_next_ips = {}
+            #procd_next_ips = {}
+            procd_next_ips = set()
             for entry in self.entryList:
                 if time.time() - entry.last_req_time >= 1:
                     # If we have sent the arp request for this nextip, no need to send again
@@ -191,8 +192,8 @@ class Router(object):
 
         # Check if the next_ip already exist in the queue
         def checkIPExist(self, next_ip):
-            ip_list = [entry.next_ip for entry in self.entryList]
-            if next_ip in ip_list:
+            ip_list = [str(entry.next_ip) for entry in self.entryList]
+            if str(next_ip) in ip_list:
                 return True
             return False
 
@@ -222,8 +223,8 @@ class Router(object):
         fwd_table.readFromFile("forwarding_table.txt")
         fwd_table.readFromRouter(my_interfaces)
         fwd_table.printTable()
-        pkt_queue = self.PktQueue()
         fwd_table_dynamic = self.FwdTable_dynamic(5)
+        pkt_queue = self.PktQueue()
         # Initialize an empty arp_table, IP -> MAC
         arp_table = {}
         while True:
@@ -249,7 +250,6 @@ class Router(object):
                     intf_to_next = input_port
                     fwd_table_dynamic.addEntry(prefix, mask, next_ip, intf_to_next)
                     continue
-
                 # Determine whether it is an ARP request
                 arp = pkt.get_header(Arp)
                 # The packet is not ARP request nor reply, ignore it
@@ -258,21 +258,20 @@ class Router(object):
                     ipv4 = pkt.get_header(IPv4)
                     if ipv4 is None:
                         continue
-                    log_debug("break point 2")
+                    #log_debug("break point 2")
                     # When IPv4 header is not none, this is an IPv4 packet
                     pkt_dst_ip = pkt[IPv4].dst
                     # Check if the packet is intended for the router itself
                     # If it is, just ignore and continue
                     if pkt_dst_ip in myips:
                         continue
-                    log_debug("break point 3")
                     # First we check the dynamic table
                     fwd_info_list = fwd_table_dynamic.findMatch(pkt_dst_ip)
                     if fwd_info_list is None:
                         # The info_list contains next_ip and interface name
                         fwd_info_list = fwd_table.findMatch(pkt_dst_ip)
-                    log_debug("break point 4")
-                    # If there is no match in the 2 forwarding tables, drop and continue
+                    #log_debug("break point 4")
+                    # If there is no match in the forwarding table, drop and continue
                     if fwd_info_list is None:
                         continue
                     next_ip = fwd_info_list[0]
@@ -299,7 +298,7 @@ class Router(object):
                     else:
                         # There is no match in the arp table
                         # check if ip is already in queue
-                        log_debug("break point 5")
+                        #log_debug("break point 5")
                         if not pkt_queue.checkIPExist(next_ip):
                             # Might need sanity check
                             senderhwaddr = None
@@ -345,8 +344,12 @@ class Router(object):
                     if arp.targetprotoaddr in myips:
                         # Update arp table
                         arp_table[arp.senderprotoaddr] = arp.senderhwaddr
+                        log_debug("bp1")
                         # Send all the packets with the given IP address
+                        pkt_queue.printTable()
+                        log_debug(arp.senderprotoaddr)
                         while pkt_queue.checkIPExist(arp.senderprotoaddr):
+                            log_debug("bp2")
                             # One packet at a time
                             pkt_info_list = pkt_queue.findMatch(arp)
                             # entry.pkt, entry.next_ip, entry.intf_to_next
