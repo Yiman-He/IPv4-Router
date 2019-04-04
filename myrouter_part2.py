@@ -315,6 +315,7 @@ class Router(object):
                         log_debug("")
                         # Send all the packets with the given IP address
                         while pkt_queue.checkIPExist(arp.senderprotoaddr):
+                        	log_debug("bp1")
                             # One packet at a time
                             pkt_info_list = pkt_queue.findMatch(arp)
                             # entry.pkt, entry.next_ip, entry.intf_to_next
