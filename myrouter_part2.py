@@ -143,7 +143,8 @@ class Router(object):
             self.entryList[:] = [entry for entry in self.entryList if entry.num_retry < 3]
             # Processed next ips. This is a set that stores next ips that we already sent arp-requests to.
             # We do not sent arp requests 2 times for the same next-ip. That's why we need the set.
-            procd_next_ips = {}
+            #procd_next_ips = {}
+            procd_next_ips = set()
             for entry in self.entryList:
                 if time.time() - entry.last_req_time >= 1:
                     # If we have sent the arp request for this nextip, no need to send again
