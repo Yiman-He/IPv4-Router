@@ -88,7 +88,7 @@ class Router(object):
                 if len(wordList) != 4:
                     log_debug("problem in input file")
                     return
-                self.addEntry(wordList[0], wordList[1], wordList[2], wordList[3])
+                self.addEntry(IPv4Address(wordList[0]), IPv4Address(wordList[1]), IPv4Address(wordList[2]), wordList[3])
 
 
         def readFromRouter(self, interfaces):
@@ -113,11 +113,11 @@ class Router(object):
         def addEntry(self, pkt, next_ip, intf_to_next):
             last_req_time = time.time()
             num_retry = 1
-            entry = self.Entry(last_req_time, num_retry, pkt, next_ip, intf_to_next)
+            entry = self.Entry(last_req_time, num_retry, pkt, IPv4Address(next_ip), intf_to_next)
             self.entryList.append(entry)
 
         def addEntry_custom(self, last_req_time, num_retry, pkt, next_ip, intf_to_next):
-            entry = self.Entry(last_req_time, num_retry, pkt, next_ip, intf_to_next)
+            entry = self.Entry(last_req_time, num_retry, pkt, IPv4Address(next_ip), intf_to_next)
             self.entryList.append(entry)
 
         # find the matched entry using arp_reply
