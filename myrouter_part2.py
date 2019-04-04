@@ -223,22 +223,22 @@ class Router(object):
                 # Determine whether it is an ARP request
                 arp = pkt.get_header(Arp)
                 # The packet is not ARP request nor reply, ignore it
-                log_debug("break point 1")
+                #log_debug("break point 1")
                 if arp is None:
                     ipv4 = pkt.get_header(IPv4)
                     if ipv4 is None:
                         continue
-                    log_debug("break point 2")
+                    #log_debug("break point 2")
                     # When IPv4 header is not none, this is an IPv4 packet
                     pkt_dst_ip = pkt[IPv4].dst
                     # Check if the packet is intended for the router itself
                     # If it is, just ignore and continue
                     if pkt_dst_ip in myips:
                         continue
-                    log_debug("break point 3")
+                    #log_debug("break point 3")
                     # The info_list contains next_ip and interface name
                     fwd_info_list = fwd_table.findMatch(pkt_dst_ip)
-                    log_debug("break point 4")
+                    #log_debug("break point 4")
                     # If there is no match in the forwarding table, drop and continue
                     if fwd_info_list is None:
                         continue
@@ -266,7 +266,7 @@ class Router(object):
                     else:
                         # There is no match in the arp table
                         # check if ip is already in queue
-                        log_debug("break point 5")
+                        #log_debug("break point 5")
                         if not pkt_queue.checkIPExist(next_ip):
                             # Might need sanity check
                             senderhwaddr = None
@@ -312,8 +312,10 @@ class Router(object):
                     if arp.targetprotoaddr in myips:
                         # Update arp table
                         arp_table[arp.senderprotoaddr] = arp.senderhwaddr
+                        log_debug("bp1")
                         # Send all the packets with the given IP address
                         while pkt_queue.checkIPExist(arp.senderprotoaddr):
+                        	log_debug("bp2")
                             # One packet at a time
                             pkt_info_list = pkt_queue.findMatch(arp)
                             # entry.pkt, entry.next_ip, entry.intf_to_next
