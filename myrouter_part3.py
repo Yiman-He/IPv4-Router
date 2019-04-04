@@ -135,7 +135,7 @@ class Router(object):
             entry = self.Entry(last_req_time, num_retry, pkt, next_ip, intf_to_next)
             self.entryList.append(entry)
 
-        def addEntry_custom(last_req_time, num_retry, pkt, next_ip, intf_to_next):
+        def addEntry_custom(self, last_req_time, num_retry, pkt, next_ip, intf_to_next):
             entry = self.Entry(last_req_time, num_retry, pkt, next_ip, intf_to_next)
             self.entryList.append(entry)
 
