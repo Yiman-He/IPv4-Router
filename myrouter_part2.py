@@ -314,6 +314,8 @@ class Router(object):
                         arp_table[arp.senderprotoaddr] = arp.senderhwaddr
                         log_debug("bp1")
                         # Send all the packets with the given IP address
+                        pkt_queue.printTable()
+                        log_debug(arp.senderprotoaddr)
                         while pkt_queue.checkIPExist(arp.senderprotoaddr):
                             log_debug("bp2")
                             # One packet at a time
