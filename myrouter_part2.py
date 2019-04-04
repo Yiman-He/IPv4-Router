@@ -127,7 +127,7 @@ class Router(object):
             for i in range(len(self.entryList)):
                 # Destination IP of packet matches the sender IP from ARP reply
                 entry = self.entryList[i]
-                if entry.next_ip == arp_reply.senderprotoaddr:
+                if str(entry.next_ip) == str(arp_reply.senderprotoaddr):
                     entry = self.entryList.pop(i)
                     return [entry.pkt, entry.next_ip, entry.intf_to_next]
             return None
