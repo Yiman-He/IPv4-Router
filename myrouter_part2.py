@@ -172,8 +172,8 @@ class Router(object):
 
         # Check if the next_ip already exist in the queue
         def checkIPExist(self, next_ip):
-            ip_list = [entry.next_ip for entry in self.entryList]
-            if next_ip in ip_list:
+            ip_list = [str(entry.next_ip) for entry in self.entryList]
+            if str(next_ip) in ip_list:
                 return True
             return False
 
