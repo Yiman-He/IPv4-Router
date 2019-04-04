@@ -1,0 +1,23 @@
+Open up a terminal on the virtual machine, and cd (if necessary) to the folder where your project files are located (or transfer them into the virtual machine). Then type the following to get Mininet started:
+
+$ sudo python start_mininet.py
+Open up an xterm on the client node:
+
+mininet> xterm client
+Start up wireshark on the client. From the xterm running on the client, type:
+
+client# wireshark -k&
+(Note: you'll get some warnings from Wireshark about running as root, which you can safely ignore.)
+
+Open an xterm on the router node:
+
+mininet> xterm router
+Start your router:
+
+router# swyard myrouter1.py
+Note that successfully running the above command will depend on how you've installed Switchyard. If it is installed in a Python virtual environment, you will need to activate that environment before running swyard.
+
+Now, in the xterm running on the client, try to send an ICMP echo request to the IP address at the "other end" of the link between the client and the router.
+client# ping -c3 10.1.1.2
+
+arping -c3 10.1.1.2
