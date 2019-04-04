@@ -312,10 +312,10 @@ class Router(object):
                     if arp.targetprotoaddr in myips:
                         # Update arp table
                         arp_table[arp.senderprotoaddr] = arp.senderhwaddr
-                        log_debug("")
+                        log_debug("bp1")
                         # Send all the packets with the given IP address
                         while pkt_queue.checkIPExist(arp.senderprotoaddr):
-                            log_debug("bp1")
+                            log_debug("bp2")
                             # One packet at a time
                             pkt_info_list = pkt_queue.findMatch(arp)
                             # entry.pkt, entry.next_ip, entry.intf_to_next
