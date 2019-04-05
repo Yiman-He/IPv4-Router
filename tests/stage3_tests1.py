@@ -43,7 +43,7 @@ def router_tests():
     #         192.168.1.100->172.16.42.2 ICMP | ICMP EchoRequest 0 42 (0
     #         data bytes) on router-eth0
 
-    packet = mk_pkt(hwsrc = '10:00:00:00:00:03', hwdst =  '30:00:00:00:00:01', ipsrc  = '192.168.1.100', ipdst = '172.16.42.2')
+    packet = mk_pkt(hwsrc = '30:00:00:00:00:01', hwdst =  '10:00:00:00:00:01', ipsrc  = '192.168.1.100', ipdst = '172.16.42.2')
     s.expect(PacketInputEvent("router-eth0", packet), "IP packet to be forwarded to 172.16.42.2 should arrive on router-eth0")
 
     # 2   Router should send ARP request for 172.16.42.2 out router-
@@ -91,8 +91,27 @@ def router_tests():
 
     # TODO for students: Write your own test for the above mentioned comment. This is not a deliverable. But will help
     #  you test if your code is correct or not.
-    
 
+    packet = mk_pkt(hwsrc = '30:00:00:00:00:01', hwdst =  '10:00:00:00:00:01', ipsrc  = '192.168.1.100', ipdst = '172.0.1.1')
+    s.expect(PacketInputEvent("router-eth0", packet), "IP packet to be forwarded to 172.0.1.1 should arrive on router-eth0")
+    
+    arp_request  = create_ip_arp_request('10:00:00:00:00:01', '192.168.1.1', '192.168.1.2')
+    s.expect(PacketOutputEvent("router-eth0", arp_request), "Router should send ARP request for 172.0.1.1 out router-eth0 interface")
+
+    arp_response = create_ip_arp_reply('30:00:00:00:00:01', '10:00:00:00:00:01',
+                                       '192.168.1.2', '192.168.1.1')
+    s.expect(PacketInputEvent("router-eth0", arp_response), "Router should receive ARP response for 172.0.1.1 on router-eth0 interface")
+
+    packet = mk_pkt(hwsrc='10:00:00:00:00:01', hwdst='30:00:00:00:00:01', ipsrc='192.168.1.100', ipdst='172.0.1.1', ttl=63)
+    s.expect(PacketOutputEvent("router-eth0", packet), "IP packet should be forwarded to 172.0.1.1 out router-eth0")
+
+    packet = mk_pkt(hwsrc='30:00:00:00:00:01', hwdst='10:00:00:00:00:01', ipsrc='1.168.1.100', ipdst='1.0.0.1', ttl=63)
+    s.expect(PacketInputEvent("router-eth0", packet), "No actions")
+
+    packet = mk_pkt(hwsrc='30:00:00:00:00:01', hwdst='10:00:00:00:00:01', ipsrc='1.168.1.100', ipdst='192.168.1.1', ttl=63)
+    s.expect(PacketInputEvent("router-eth0", packet), "No actions")
+
+    
     return s
 
 scenario = router_tests()
